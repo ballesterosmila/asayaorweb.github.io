@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catblock — Instala sin electricidad. Sin mazo. Sin rezar.</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- SVG Noise Filter (global) -->
+  <svg style="position:fixed;width:0;height:0;" aria-hidden="true">
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" mode="overlay" result="blend"/>
+      <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+    </filter>
+  </svg>
+
+  <style>
+    /* ─── TOKENS ─────────────────────────────────────────── */
+    :root {
+      --paper:    #E8E4DD;
+      --signal:   #E63B2E;
+      --offwhite: #F5F3EE;
+      --black:    #111111;
+      --mid:      #555047;
+      --border:   #D1CDC5;
+
+      --font-sans: 'Space Grotesk', sans-serif;
+      --font-serif:'DM Serif Display', serif;
+      --font-mono: 'Space Mono', monospace;
+
+      --r-card: 1.75rem;
+      --r-pill: 999px;
+    }
+
+    /* ─── RESET ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--paper);
+      color: var(--black);
+      font-family: var(--font-sans);
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE OVERLAY ──────────────────────────────────── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.04;
+      filter: url(#noise);
+      background: var(--paper);
+    }
+
+    /* ─── HEADER ─────────────────────────────────────────── */
+    #site-header {
+      position: fixed;
+      top: 1.25rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      padding: 0.6rem 1.5rem 0.6rem 1.25rem;
+      border-radius: var(--r-pill);
+      border: 1px solid rgba(17,17,17,0.12);
+      background: rgba(232, 228, 221, 0.6);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: background 0.4s, border-color 0.4s;
+      white-space: nowrap;
+    }
+    #site-header.scrolled {
+      background: rgba(232, 228, 221, 0.92);
+      border-color: rgba(17,17,17,0.22);
+    }
+    .header-logo {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--black);
+    }
+    .header-logo span {
+      color: var(--signal);
+    }
+    .header-nav {
+      display: flex;
+      gap: 1.5rem;
+    }
+    .header-nav a {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--mid);
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      transition: color 0.2s;
+    }
+    .header-nav a:hover { color: var(--black); }
+    .header-cta {
+      background: var(--signal);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.5rem 1.1rem;
+      border-radius: var(--r-pill);
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.18s, background 0.2s;
+      display: inline-block;
+    }
+    .header-cta:hover { transform: scale(1.04); background: #cc2a1e; }
+
+    /* ─── HERO ───────────────────────────────────────────── */
+    #hero {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 5vw 8vh;
+      position: relative;
+      overflow: hidden;
+      background: var(--black);
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('Pics/catblock-producto-destacada-500x333.webp');
+      background-size: cover;
+      background-position: center 30%;
+      opacity: 0.35;
+      transform: scale(1.05);
+    }
+    .hero-gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(17,17,17,0.2) 0%,
+        rgba(17,17,17,0.0) 30%,
+        rgba(17,17,17,0.7) 70%,
+        rgba(17,17,17,1) 100%
+      );
+    }
+    .hero-eyebrow {
+      position: relative;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--signal);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 2.5rem;
+      height: 1px;
+      background: var(--signal);
+    }
+    .hero-headline {
+      position: relative;
+      max-width: 900px;
+    }
+    .hero-headline h1 {
+      line-height: 1.0;
+      margin-bottom: 0.15em;
+    }
+    .hero-headline .line-serif {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: clamp(3.5rem, 8vw, 7.5rem);
+      color: var(--offwhite);
+      display: block;
+    }
+    .hero-headline .line-sans {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: clamp(3.5rem, 8vw, 7.5rem);
+      color: var(--offwhite);
+      display: block;
+    }
+    .hero-sub {
+      position: relative;
+      margin-top: 2rem;
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      font-weight: 300;
+      color: rgba(242, 240, 233, 0.75);
+      max-width: 520px;
+      line-height: 1.6;
+    }
+    .hero-actions {
+      position: relative;
+      margin-top: 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--signal);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.9rem 2rem;
+      border-radius: var(--r-pill);
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: transform 0.18s, background 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary:hover { transform: scale(1.03); background: #cc2a1e; }
+    .btn-ghost {
+      color: rgba(242, 240, 233, 0.65);
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: color 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .btn-ghost:hover { color: var(--offwhite); }
+    .hero-badge {
+      position: absolute;
+      top: 2.5rem;
+      right: 5vw;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.3rem;
+    }
+    .badge-pill {
+      background: rgba(230,59,46,0.15);
+      border: 1px solid rgba(230,59,46,0.4);
+      border-radius: var(--r-pill);
+      padding: 0.35rem 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: #ff7069;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ─── SECTION WRAPPER ────────────────────────────────── */
+    .section {
+      padding: 8rem 5vw;
+    }
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--signal);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 1.5rem;
+      height: 1px;
+      background: var(--signal);
+    }
+
+    /* ─── FEATURES ───────────────────────────────────────── */
+    #features {
+      background: var(--offwhite);
+    }
+    .features-header {
+      max-width: 700px;
+      margin-bottom: 4rem;
+    }
+    .features-header h2 {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .features-header h2 em {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 400;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--paper);
+      border-radius: var(--r-card);
+      padding: 2.25rem 2rem;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(17,17,17,0.1);
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--signal);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .feature-card:hover::before { transform: scaleX(1); }
+    .feature-num {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--signal);
+      letter-spacing: 0.12em;
+      margin-bottom: 1.5rem;
+    }
+    .feature-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      margin-bottom: 1.25rem;
+      color: var(--black);
+    }
+    .feature-card h3 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+    }
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--mid);
+      line-height: 1.7;
+    }
+    .feature-tag {
+      margin-top: 1.5rem;
+      display: inline-block;
+      background: var(--black);
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.75rem;
+      border-radius: var(--r-pill);
+    }
+
+    /* ─── PHILOSOPHY ─────────────────────────────────────── */
+    #philosophy {
+      background: var(--black);
+      color: var(--offwhite);
+    }
+    .philosophy-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    @media (max-width: 768px) { .philosophy-inner { grid-template-columns: 1fr; gap: 3rem; } }
+    .philosophy-left h2 {
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    .philosophy-left h2 em {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--signal);
+    }
+    .philosophy-left p {
+      font-size: 1rem;
+      color: rgba(242,240,233,0.6);
+      line-height: 1.75;
+      margin-bottom: 1rem;
+    }
+    .compare-table {
+      border-radius: var(--r-card);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .compare-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .compare-row:not(:last-child) {
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .compare-cell {
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .compare-cell.old {
+      background: rgba(255,255,255,0.03);
+      color: rgba(242,240,233,0.45);
+      border-right: 1px solid rgba(255,255,255,0.07);
+    }
+    .compare-cell.old::before {
+      content: '✕  ';
+      color: rgba(230,59,46,0.5);
+      font-size: 0.7rem;
+    }
+    .compare-cell.new {
+      background: rgba(230,59,46,0.06);
+      color: rgba(242,240,233,0.85);
+    }
+    .compare-cell.new::before {
+      content: '✓  ';
+      color: var(--signal);
+      font-size: 0.7rem;
+    }
+    .compare-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .compare-header span {
+      padding: 0.6rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(242,240,233,0.4);
+    }
+    .compare-header span.active { color: var(--signal); }
+
+    /* ─── QUOTE ──────────────────────────────────────────── */
+    #quote {
+      background: var(--signal);
+      padding: 6rem 5vw;
+    }
+    .quote-inner {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .quote-mark {
+      font-family: var(--font-serif);
+      font-size: 6rem;
+      line-height: 0.5;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .quote-text {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+      color: #fff;
+      line-height: 1.35;
+      margin-bottom: 2rem;
+    }
+    .quote-source {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+    }
+
+    /* ─── INVENTOR ───────────────────────────────────────── */
+    #inventor {
+      background: var(--paper);
+    }
+    .inventor-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: center;
+    }
+    @media (max-width: 768px) { .inventor-inner { grid-template-columns: 1fr; gap: 3rem; } }
+    .inventor-text h2 {
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    .inventor-text h2 em {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 400;
+    }
+    .inventor-text p {
+      font-size: 0.95rem;
+      color: var(--mid);
+      line-height: 1.75;
+      margin-bottom: 1rem;
+    }
+    .patent-badge {
+      margin-top: 2rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--black);
+      color: var(--paper);
+      padding: 0.65rem 1.25rem;
+      border-radius: var(--r-pill);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .patent-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--signal);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .inventor-visual {
+      background: var(--black);
+      border-radius: var(--r-card);
+      aspect-ratio: 4/5;
+      position: relative;
+      overflow: hidden;
+    }
+    .inventor-visual-img {
+      position: absolute;
+      inset: 0;
+      background-image: url('Pics/Untitled-Made with FlexClip.png');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.6;
+    }
+    .inventor-visual-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(17,17,17,0.9) 0%, transparent 60%);
+    }
+    .inventor-visual-label {
+      position: absolute;
+      bottom: 1.75rem;
+      left: 1.75rem;
+      right: 1.75rem;
+    }
+    .inventor-visual-label p {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--offwhite);
+      line-height: 1.5;
+    }
+    .inventor-visual-label span {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: rgba(242,240,233,0.45);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: block;
+      margin-top: 0.5rem;
+    }
+
+    /* ─── OBJECTIONS ─────────────────────────────────────── */
+    #objections {
+      background: var(--offwhite);
+    }
+    .objections-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .objections-inner { grid-template-columns: 1fr; gap: 3rem; }
+      .objections-img { order: -1; }
+    }
+    .objections-col { min-width: 0; }
+    .objections-header {
+      margin-bottom: 2.5rem;
+    }
+    .objections-header h2 {
+      font-size: clamp(1.75rem, 3vw, 2.75rem);
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .objections-header h2 em {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 400;
+    }
+    .objections-img {
+      position: relative;
+      border-radius: var(--r-card);
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(17,17,17,0.12);
+    }
+    .objections-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .objections-img-caption {
+      position: absolute;
+      bottom: 1.25rem;
+      left: 1.25rem;
+    }
+    .obj-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .obj-item {
+      background: var(--paper);
+      border-radius: var(--r-card);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .obj-q {
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .obj-q span {
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: var(--mid);
+      letter-spacing: 0.01em;
+    }
+    .obj-q span.q-mark {
+      color: var(--signal);
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .obj-a {
+      padding: 0 2rem 1.5rem;
+      font-size: 0.9rem;
+      color: var(--mid);
+      line-height: 1.7;
+      display: none;
+      border-top: 1px solid var(--border);
+      padding-top: 1.25rem;
+    }
+    .obj-item.open .obj-a { display: block; }
+    .obj-item.open .obj-q span.q-mark { transform: rotate(45deg); }
+    .obj-q span.q-mark { transition: transform 0.2s; display: inline-block; }
+
+    /* ─── FINAL CTA ──────────────────────────────────────── */
+    #final-cta {
+      background: var(--black);
+      text-align: center;
+      padding: 9rem 5vw;
+    }
+    .final-cta-inner { max-width: 700px; margin: 0 auto; }
+    #final-cta h2 {
+      font-size: clamp(2.25rem, 5vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      color: var(--offwhite);
+      margin-bottom: 1.25rem;
+    }
+    #final-cta h2 em {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--signal);
+    }
+    #final-cta p {
+      font-size: 1rem;
+      color: rgba(242,240,233,0.55);
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .cta-stack {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* ─── FOOTER ─────────────────────────────────────────── */
+    footer {
+      background: var(--black);
+      padding: 2rem 5vw 3rem;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .footer-logo {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(242,240,233,0.5);
+    }
+    .footer-logo span { color: var(--signal); }
+    .footer-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: rgba(242,240,233,0.3);
+      text-transform: uppercase;
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s infinite;
+    }
+    .footer-copy {
+      font-size: 0.75rem;
+      color: rgba(242,240,233,0.25);
+      font-family: var(--font-mono);
+    }
+
+    /* ─── SCROLL ANIMATIONS (initial state) ──────────────── */
+    .reveal { opacity: 0; transform: translateY(30px); }
+    .reveal-left { opacity: 0; transform: translateX(-30px); }
+    .reveal-right { opacity: 0; transform: translateX(30px); }
+
+    /* ─── UTILITIES ──────────────────────────────────────── */
+    @media (max-width: 640px) {
+      #site-header .header-nav { display: none; }
+      .hero-badge { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ═══ HEADER ════════════════════════════════════════════ -->
+  <header id="site-header">
+    <div class="header-logo">Cat<span>block</span></div>
+    <nav class="header-nav">
+      <a href="#features">Qué hace</a>
+      <a href="#inventor">El inventor</a>
+      <a href="#objections">Preguntas</a>
+    </nav>
+    <a href="https://www.cmoyca.com/producto/catblock/" target="_blank" class="header-cta">Conseguirla →</a>
+  </header>
+
+  <!-- ═══ HERO ══════════════════════════════════════════════ -->
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-gradient"></div>
+
+    <div class="hero-badge">
+      <div class="badge-pill">Patentada</div>
+      <div class="badge-pill">Probada en obra</div>
+    </div>
+
+    <div class="hero-eyebrow">Herramienta para instaladores</div>
+
+    <div class="hero-headline">
+      <h1>
+        <span class="line-serif">Lo inventó un carpintero.</span>
+        <span class="line-sans">Para carpinteros.</span>
+      </h1>
+    </div>
+
+    <p class="hero-sub">
+      Instalas puertas cada semana. Ya es hora de dejar de hacerlo
+      sin electricidad, sin mazo y sin rezar para que quede a plomo.
+    </p>
+
+    <div class="hero-actions">
+      <a href="https://www.cmoyca.com/producto/catblock/" target="_blank" class="btn-primary">
+        Consigue Catblock
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a href="#features" class="btn-ghost">
+        Ver cómo funciona
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══ FEATURES ══════════════════════════════════════════ -->
+  <section id="features" class="section">
+    <div class="section-label">Qué hace Catblock</div>
+    <div class="features-header reveal">
+      <h2>Tres problemas que<br /><em>llevas años ignorando.</em></h2>
+    </div>
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-num">01 / 03</div>
+        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        <h3>Sin enchufe.<br />En cualquier obra.</h3>
+        <p>No necesita electricidad ni compresor. Catblock funciona donde hay trabajo, no donde hay corriente.</p>
+        <span class="feature-tag">Sin electricidad</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-num">02 / 03</div>
+        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+        </svg>
+        <h3>Dos lados.<br />Un solo operario.</h3>
+        <p>La puerta queda sujeta por ambos lados mientras la nivelan. Sin ayudante sujetando. Sin improvisar.</p>
+        <span class="feature-tag">Trabaja solo</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-num">03 / 03</div>
+        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+        <h3>Sin marcas.<br />Sin reparaciones.</h3>
+        <p>Ningún clavo. Ningún mazo. El marco queda intacto. El cliente no verá nada que no deba ver.</p>
+        <span class="feature-tag">Marco limpio</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ PHILOSOPHY ════════════════════════════════════════ -->
+  <section id="philosophy" class="section">
+    <div class="section-label" style="color:#ff7069;">El método vs. la inercia</div>
+    <div class="philosophy-inner">
+
+      <div class="philosophy-left reveal-left">
+        <h2>El problema no<br />eres tú.<br /><em>Es el método.</em></h2>
+        <p>Un método que lleva décadas sin cambiar no es tradición. Es inercia. Sigues usando cuñas, mazo y compresor porque nunca hubo otra opción.</p>
+        <p>Ahora la hay.</p>
+      </div>
+
+      <div class="compare-table reveal-right">
+        <div class="compare-header">
+          <span>Método habitual</span>
+          <span class="active">Catblock</span>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell old">Necesitas electricidad en obra</div>
+          <div class="compare-cell new">Funciona sin corriente</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell old">Ayudante para sujetar la puerta</div>
+          <div class="compare-cell new">Trabajas solo, a tu ritmo</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell old">Clavos y mazo dejan marca</div>
+          <div class="compare-cell new">El marco queda intacto</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell old">Rezas para que quede a plomo</div>
+          <div class="compare-cell new">Nivelan mientras la abren y cierran</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell old">Tiempo perdido reajustando</div>
+          <div class="compare-cell new">Menos tiempo. Mejor resultado.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ QUOTE ══════════════════════════════════════════════ -->
+  <section id="quote">
+    <div class="quote-inner">
+      <span class="quote-mark">"</span>
+      <p class="quote-text">Que bien me hubiese venido esto el fin de semana pasado.</p>
+      <span class="quote-source">— Comentario real de un instalador en Instagram</span>
+    </div>
+  </section>
+
+  <!-- ═══ INVENTOR ══════════════════════════════════════════ -->
+  <section id="inventor" class="section">
+    <div class="section-label">El origen</div>
+    <div class="inventor-inner">
+
+      <div class="inventor-text reveal-left">
+        <h2>No lo inventó<br />una empresa.<br /><em>Lo inventó él.</em></h2>
+        <p>Fernando llevaba años instalando puertas con el mismo método de siempre: cuñas, mazo, compresor. Un día se hartó de depender de un enchufe que no estaba y de reparar marcos que no debería haber tocado.</p>
+        <p>En lugar de quejarse, se puso a inventar. El resultado es Catblock: una herramienta que sujeta la puerta por los dos lados, permite nivelarla con exactitud y no necesita ningún clavo ni enchufe.</p>
+        <p>La patentó porque era una solución que no existía.</p>
+        <div class="patent-badge">
+          <span class="patent-dot"></span>
+          Patentada · Probada en obra · Inventos Eureka
+        </div>
+      </div>
+
+      <div class="inventor-visual reveal-right">
+        <div class="inventor-visual-img"></div>
+        <div class="inventor-visual-overlay"></div>
+        <div class="inventor-visual-label">
+          <p>"Soy el carpintero que inventó la herramienta que necesitaba."</p>
+          <span>Fernando — Inventor de Catblock</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ OBJECTIONS ════════════════════════════════════════ -->
+  <section id="objections" class="section" style="background: var(--offwhite);">
+    <div class="objections-inner">
+
+      <!-- Columna izquierda -->
+      <div class="objections-col">
+        <div class="section-label">Lo que preguntan</div>
+        <div class="objections-header reveal">
+          <h2>Respuestas <em>directas.</em><br />Sin rodeos.</h2>
+        </div>
+        <div class="obj-list">
+
+          <div class="obj-item reveal">
+            <div class="obj-q" onclick="toggleObj(this)">
+              <span>¿Solo con espuma? Con el tiempo da problemas.</span>
+              <span class="q-mark">+</span>
+            </div>
+            <div class="obj-a">
+              Los tornillos anclan directamente al premarco. La espuma no es lo que sujeta la puerta, es el sellado. En obra real, con Catblock, no flota nada.
+            </div>
+          </div>
+
+          <div class="obj-item reveal">
+            <div class="obj-q" onclick="toggleObj(this)">
+              <span>Con experiencia no hace falta ninguna herramienta extra.</span>
+              <span class="q-mark">+</span>
+            </div>
+            <div class="obj-a">
+              Puede ser. Catblock no es para quien defiende su método. Es para quien valora su tiempo. Si tardas 45 minutos en lo que podrías hacer en 15, la experiencia no te está ahorrando nada.
+            </div>
+          </div>
+
+          <div class="obj-item reveal">
+            <div class="obj-q" onclick="toggleObj(this)">
+              <span>¿Cuánto cuesta? ¿Merece la pena?</span>
+              <span class="q-mark">+</span>
+            </div>
+            <div class="obj-a">
+              Calcula cuántas puertas montas al mes. Si ahorras 20 minutos por puerta y montas 20 puertas, son casi 7 horas al mes. Tú decides cuánto vale eso.
+            </div>
+          </div>
+
+          <div class="obj-item reveal">
+            <div class="obj-q" onclick="toggleObj(this)">
+              <span>¿Dónde se compra?</span>
+              <span class="q-mark">+</span>
+            </div>
+            <div class="obj-a">
+              Justo. Esa es la pregunta importante. <a href="https://www.cmoyca.com/producto/catblock/" target="_blank" style="color: var(--signal); font-weight: 600; text-decoration: none;">Puedes comprarla aquí →</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Columna derecha: imagen -->
+      <div class="objections-img reveal-right">
+        <img src="Pics/catblock-producto-destacada-500x333.webp" alt="Catblock — herramienta patentada para instalar puertas" />
+        <div class="objections-img-caption">
+          <span class="patent-badge" style="margin-top:0;">
+            <span class="patent-dot"></span>
+            Herramienta patentada
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ FINAL CTA ══════════════════════════════════════════ -->
+  <section id="final-cta">
+    <div class="final-cta-inner">
+      <div class="section-label" style="justify-content: center; margin-bottom: 1.5rem;">
+        Antes del siguiente trabajo
+      </div>
+      <h2>La próxima puerta,<br /><em>sin rezar.</em></h2>
+      <p>
+        Hay más de un instalador preguntando dónde comprarlo en los comentarios.
+        Ahora tienes la respuesta.
+      </p>
+      <div class="cta-stack">
+        <a href="https://www.cmoyca.com/producto/catblock/" target="_blank" class="btn-primary" style="font-size: 1rem; padding: 1rem 2.25rem;">
+          Comprar Catblock
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-logo">Cat<span>block</span></span>
+      <span class="footer-status">
+        <span class="status-dot"></span>
+        Herramienta disponible
+      </span>
+      <span class="footer-copy">Patentada · España</span>
+    </div>
+  </footer>
+
+
+  <!-- ═══ SCRIPTS ═══════════════════════════════════════════ -->
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // ── Header blur on scroll ──────────────────────────────
+    const header = document.getElementById('site-header');
+    window.addEventListener('scroll', () => {
+      header.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    // ── Hero entrance ─────────────────────────────────────
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    heroTl
+      .from('.hero-bg',       { opacity: 0, scale: 1.1, duration: 1.8 }, 0)
+      .from('.hero-eyebrow',  { opacity: 0, y: 20, duration: 0.7 }, 0.4)
+      .from('.line-serif',    { opacity: 0, y: 40, duration: 0.9 }, 0.55)
+      .from('.line-sans',     { opacity: 0, y: 40, duration: 0.9 }, 0.7)
+      .from('.hero-sub',      { opacity: 0, y: 25, duration: 0.7 }, 0.9)
+      .from('.hero-actions',  { opacity: 0, y: 20, duration: 0.6 }, 1.05)
+      .from('.hero-badge',    { opacity: 0, x: 20, duration: 0.6 }, 1.1);
+
+    // ── Scroll reveals ─────────────────────────────────────
+    gsap.utils.toArray('.reveal').forEach(el => {
+      gsap.to(el, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 85%',
+          toggleActions: 'play none none none'
+        }
+      });
+    });
+
+    gsap.utils.toArray('.reveal-left').forEach(el => {
+      gsap.to(el, {
+        opacity: 1,
+        x: 0,
+        duration: 0.9,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 80%',
+          toggleActions: 'play none none none'
+        }
+      });
+    });
+
+    gsap.utils.toArray('.reveal-right').forEach(el => {
+      gsap.to(el, {
+        opacity: 1,
+        x: 0,
+        duration: 0.9,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 80%',
+          toggleActions: 'play none none none'
+        }
+      });
+    });
+
+    // ── Quote parallax ─────────────────────────────────────
+    gsap.from('#quote .quote-text', {
+      opacity: 0,
+      y: 40,
+      duration: 1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '#quote',
+        start: 'top 75%'
+      }
+    });
+
+    // ── Staggered feature cards ────────────────────────────
+    gsap.from('.feature-card', {
+      opacity: 0,
+      y: 40,
+      duration: 0.7,
+      stagger: 0.12,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.features-grid',
+        start: 'top 80%'
+      }
+    });
+
+    // ── Objections stagger ────────────────────────────────
+    gsap.from('.obj-item', {
+      opacity: 0,
+      y: 25,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.obj-list',
+        start: 'top 80%'
+      }
+    });
+  </script>
+
+  <script>
+    function toggleObj(el) {
+      const item = el.closest('.obj-item');
+      item.classList.toggle('open');
+    }
+  </script>
+
+</body>
+</html>
